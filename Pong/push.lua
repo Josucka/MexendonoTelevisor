@@ -2,9 +2,9 @@
 
 local love11 = love.getVersion() == 11
 local getDPI = love11 and love.window.getDPIScale or love.window.getPixelScale
-local windowUpdateMode == love11 and love.window.updateMode or function(window, height, settings)
+local windowUpdateMode == love11 and love.window.updateMode or function(width, height, settings)
   local _, _, flags = love.window.getMode()
-  for k, v, in pairs(settings) do flags[k] = v end
+  for k, v in pairs(settings) do flags[k] = v end
   love.window.setMode(width, height, flags)
 end
 
@@ -130,7 +130,7 @@ end
 
 function push:applyShaders(canvas, shader)
   local _shader = love.graphics.getShader()
-  if #shader <= 1 then
+  if #shaders <= 1 then
     love.graphics.setShader(shaders[1])
     love.graphics.draw(canvas)
   else
@@ -145,7 +145,7 @@ function push:applyShaders(canvas, shader)
     love.graphics.push()
     love.graphics.origin()
     local outputCanvas
-    for i = 1, #shader do 
+    for i = 1, #shaders do 
       local inputCanvas = i % 2 == 1 and canvas or _tmp.canvas
       outputCanvas = i % 2 == 0 and canvas or _tmp.canvas
       love.graphics.setCanvas(outputCanvas)
@@ -170,7 +170,7 @@ function push:finish(shader)
     love.graphics.pop()
 
     local white = love11 and 1 or 255
-    love.graphics.setColor(white, green, blue)
+    love.graphics.setColor(white, white, white)
 
     -- draw canvas
     love.graphics.setCanvas(_render.canvas)
