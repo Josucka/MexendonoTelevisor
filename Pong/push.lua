@@ -95,7 +95,7 @@ function push:setShader(name, shader)
 end
 
 function push:initValues()
-  self;_PSCALE = (not love11 and self._highdpi) and getDPI() or 1
+  self._PSCALE = (not love11 and self._highdpi) and getDPI() or 1
 
   self._SCALE = {
     x = self._RWIDTH/self._WWIDTH * self._PSCALE,
