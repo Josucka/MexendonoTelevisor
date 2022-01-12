@@ -24,6 +24,8 @@ WINDOW_HEIGHT = 720
 VIRTUAL_WIDTH = 432
 VIRTUAL_HEIGHT = 243
 
+-- spead at which we  will move our paddle; multiplied by dt in update
+PADDLE_SPEED = 200
 
 --[[
   Runs when the game first starts up, only once; used to initialize the game.
@@ -36,6 +38,9 @@ function love.load()
   -- more "retro-looking" font object we can use for any text
   smallFont = love.graphics.newFont('font.ttf', 8)
 
+  -- larger font for drawing the score on the screen
+  scoreFont = love.graphics.newFont('font.ttf', 32)
+
   -- set LOVE2d's active font to the smallFont objet
   love.graphics.setFont(smallFont)
 
@@ -45,6 +50,34 @@ function love.load()
     resizable = false,
     vsync = true
   })
+
+  -- paddle positions on the Y axis (they can only move up or down)
+  player1Y = 30
+  player2Y = VIRTUAL_HEIGHT - 50
+end
+
+--[[
+  Runs every frame, with "dt" passed in, our delta in seconds
+  since the last frame, which LOVE2D supplies us.
+]]
+function love.update(dt)
+  -- player 1 movement
+  if love.Keyboard.isDown('w') then
+    -- add negative paddle speed to current Y scaled by deltaTime
+    player1Y = player1Y + -PADDLE_SPEED * dt
+  elseif love.Keyboard.isDown('s') then
+    -- add positive paddle speed to current Y scaled by deltaTime
+    player1Y = player1Y + PADDLE_SPEED * dt
+  end
+
+  -- player 2 movement
+  if love.Keyboard.isDown('up') then
+    --add negative paddle speed to current Y scaled by deltaTime
+    player2Y = player2Y + -PADDLE_SPEED * dt
+  elseif love.Keyboard.isDown('down') then
+    -- add positive paddle speed to current Y scaled by deltaTime
+    player2Y = player2Y + PADDLE_SPEED * dt
+  end
 end
 
 --[[
@@ -71,7 +104,11 @@ function love.draw()
   love.graphics.clear(40/255, 45/255, 52/255, 255/255)
 
   -- draww welcome text toward the top of the screen
+  love.graphics.setFont(smallFont)
   love.graphics.printf('Hello Pong!', 0, VIRTUAL_HEIGHT, 'center')
+
+  -- draw score on the left and right center of the screen
+  -- need to switch font to draw brfore actually printing
 
   -- 
   -- paddles are simply rectangles ew draw on the screen at certain points, as is the ball

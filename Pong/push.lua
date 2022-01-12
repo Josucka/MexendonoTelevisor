@@ -86,6 +86,13 @@ function push:setupCanvas(name)
   local canvasTable = self:getCanvasTable(name)
   return love.graphics.setCanvas({ canvasTable.canvas, stencil = canvasTable.stencil })
 end
+function push:getCanvasTable(name)
+  for i = 1, #self.canvases do
+    if self.canvases[i].name == name then
+      return self.canvases[i]
+    end
+  end
+end
 function push:setShader(name, shader)
   if not shader then
     self:getCanvasTable("_render").shader = name
@@ -128,7 +135,7 @@ function push:start()
   end
 end
 
-function push:applyShaders(canvas, shader)
+function push:applyShaders(canvas, shaders)
   local _shader = love.graphics.getShader()
   if #shaders <= 1 then
     love.graphics.setShader(shaders[1])
