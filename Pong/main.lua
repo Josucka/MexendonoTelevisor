@@ -18,6 +18,19 @@
 ------------
 push = require 'push'
 
+-- the "Class" library we're using will aloww us to represent anything in our game as code, 
+-- rather than keeping of many disparate variables and methods
+Class = require 'class'
+
+-- our Paddle class, which stores position and dimenrions for each Paddle and the logic for 
+-- rendering them
+require 'Paddle'
+
+-- our Ball class, which isn't much different than a Paddle strycture-wise but which will 
+-- mechanically function very differently
+require 'Ball'
+
+-- 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 
@@ -31,9 +44,11 @@ PADDLE_SPEED = 200
   Runs when the game first starts up, only once; used to initialize the game.
 ]]
 function love.load()
-  -- use nearest-neighbor filtering on upscaling and downscling to prevent blurring of text and graphics;
-  -- try removing this function to see the difference!
   love.graphics.setDefaultFilter('nearest', 'nearest')
+
+  -- "seed" the RNG so that calls to random are always random use the current time,
+  -- since that will vary on startup every time
+  math.randomseed(os.time())
 
   -- more "retro-looking" font object we can use for any text
   smallFont = love.graphics.newFont('font.ttf', 8)
@@ -50,10 +65,19 @@ function love.load()
     resizable = false,
     vsync = true
   })
+  
+  -- initialize our play paddles; make them global so that they can be detected by other
+  -- functions and modules
+  player1 = Paddle(10, 30, 5, 20)
+  player2 = Paddle(VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 30, 5, 20)
 
-  -- paddle positions on the Y axis (they can only move up or down)
-  player1Y = 30
-  player2Y = VIRTUAL_HEIGHT - 50
+  -- place a ball in the middle of the screen
+  ball = Ball(VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
+
+  -- game state variable used to trasition between different parts of the game (used for
+  -- beginning, menus, main game, high score list, etc.)
+  -- we will use this to determine behavior during render and update
+  gameState = 'start'
 end
 
 --[[
@@ -63,21 +87,30 @@ end
 function love.update(dt)
   -- player 1 movement
   if love.Keyboard.isDown('w') then
-    -- add negative paddle speed to current Y scaled by deltaTime
-    player1Y = player1Y + -PADDLE_SPEED * dt
+    player1.dy = -PADDLE_SPEED
   elseif love.Keyboard.isDown('s') then
-    -- add positive paddle speed to current Y scaled by deltaTime
-    player1Y = player1Y + PADDLE_SPEED * dt
+    player1.dy = PADDLE_SPEED
+  else
+    player1.dy = 0
   end
 
   -- player 2 movement
   if love.Keyboard.isDown('up') then
-    --add negative paddle speed to current Y scaled by deltaTime
-    player2Y = player2Y + -PADDLE_SPEED * dt
+    player2.dy = -PADDLE_SPEED
   elseif love.Keyboard.isDown('down') then
-    -- add positive paddle speed to current Y scaled by deltaTime
-    player2Y = player2Y + PADDLE_SPEED * dt
+    player2.dy = PADDLE_SPEED
+  else
+    player2.dy = 0
   end
+
+  -- update our ball based on its DX and DY only if we're in play state;
+  -- scale the velocity by dt so movement is famerate-independent
+  if gameState == 'play' then
+    ball:update(dt)
+  end
+
+  player1:update(dt)
+  player2:update(dt)
 end
 
 --[[
@@ -89,11 +122,23 @@ function love.keypressed(key)
   if key == 'escape' then
     -- function LOVE gives us to terminate application
     love.event.quit()
+  
+  -- if we press enter during the start state of the game, we'll go into play mode during play
+  -- more, the ball will move in a random direction
+  elseif key == 'enter' or key == 'return' then
+    if gameState == 'start' then
+      gameState = 'play'
+    else
+      gameState = 'start'
+
+      -- ball's new reset method
+      ball:reset()
+    end
   end
 end
 
 --[[
-  Callde after update by LOVE2D, used to draw anything to the screen, update or otherwise.
+  Callded after update by LOVE2D, used to draw anything to the screen, update or otherwise.
 ]]
 function love.draw()
   -- begin rendering at virtual resolution
@@ -103,26 +148,22 @@ function love.draw()
   -- to some version of the original Pong
   love.graphics.clear(40/255, 45/255, 52/255, 255/255)
 
-  -- draww welcome text toward the top of the screen
+  -- draw different things based on the state of the game
   love.graphics.setFont(smallFont)
-  love.graphics.printf('Hello Pong!', 0, VIRTUAL_HEIGHT, 'center')
 
-  -- draw score on the left and right center of the screen
-  -- need to switch font to draw brfore actually printing
+  if gameState == 'start' then
+    love.graphics.printf('Hello Start State!', 0, 20, VIRTUAL_WIDTH, 'center')
+  else
+    love.graphics.printf('Hello Play State!', 0, 20, VIRTUAL_WIDTH, 'center')    
+  end
 
-  -- 
-  -- paddles are simply rectangles ew draw on the screen at certain points, as is the ball
-  --
+  -- render paddles, now using their class's render method
+  player1:render()
+  player2:render()
 
-  -- render first paddle (left side)
-  love.graphics.rectangle('fill', 10, 30, 5, 20)
-
-  -- render second paddle (right side)
-  love.graphics.rectangle('fill', VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 50, 5, 20)
-
-  --render ball (center)
-  love.graphics.rectangle('fill', VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
-
+  -- render ball using its class's render method
+  ball:render()
+  
   -- end rendering at virtual resolution
   push:apply('end')
 end
