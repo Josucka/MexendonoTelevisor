@@ -44,7 +44,13 @@ PADDLE_SPEED = 200
   Runs when the game first starts up, only once; used to initialize the game.
 ]]
 function love.load()
+  -- set love's default filter to "nearest-neighbor", which essentially
+  -- means there will be no filtering of pixels (blurriness), which is 
+  -- important for a nice crisp, 2D look 
   love.graphics.setDefaultFilter('nearest', 'nearest')
+
+  -- set the title of our application window
+  love.window.setTitle('Pong')
 
   -- "seed" the RNG so that calls to random are always random use the current time,
   -- since that will vary on startup every time
@@ -65,6 +71,11 @@ function love.load()
     resizable = false,
     vsync = true
   })
+
+  -- initialize score variables, used for rendering on the screen and keeping
+  -- track of the winner
+  player1Score = 0
+  player2Score = 0
   
   -- initialize our play paddles; make them global so that they can be detected by other
   -- functions and modules
@@ -166,4 +177,14 @@ function love.draw()
   
   -- end rendering at virtual resolution
   push:apply('end')
+end
+
+--[[
+  Renders the current FPS
+]]
+function displayFPS()
+  -- simple FPS display across all states
+  love.graphics.setFont(smallFont)
+  love.graphics.setColor(0, 255/255, 0, 255/255)
+  love.graphics.print('FPS: '.. tostring(love.timer.getFPS()), 10, 10)
 end

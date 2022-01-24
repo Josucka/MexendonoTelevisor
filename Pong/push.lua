@@ -213,6 +213,10 @@ function push:finish(shader)
   end
 end
 
+function push:setBorderColor(color, g, b)
+  self._borderColor = g and {color, g, b} or color
+end
+
 function push:toGame(x, y)
   x, y = x - self._OFFSET.x, y - self._OFFSET.y
   local normalX, normalY = x / self._GWIDTH, y / self._GHEIGHT
