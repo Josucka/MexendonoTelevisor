@@ -2,7 +2,7 @@
 
 local love11 = love.getVersion() == 11
 local getDPI = love11 and love.window.getDPIScale or love.window.getPixelScale
-local windowUpdateMode == love11 and love.window.updateMode or function(width, height, settings)
+local windowUpdateMode = love11 and love.window.updateMode or function(width, height, settings)
   local _, _, flags = love.window.getMode()
   for k, v in pairs(settings) do flags[k] = v end
   love.window.setMode(width, height, flags)
@@ -123,6 +123,10 @@ function push:initValues()
   self._GHEIGHT = self._RHEIGHT * self._PSCALE - self._OFFSET.y * 2
 end
 
+function push:apply(operation, shader)
+  self._drawFunctions[operation](self, shader)
+end
+
 function push:start()
   if self._canvas then
     love.graphics.push()
@@ -170,7 +174,7 @@ function push:applyShaders(canvas, shaders)
 end
 
 function push:finish(shader)
-  love.graphics.setBackgoundColor(unpack(self._borderColor))
+  love.graphics.setBackgroundColor(unpack(self._borderColor))
   if self._canvas then
     local _render = self:getCanvasTable("_render")
 
